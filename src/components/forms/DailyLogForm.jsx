@@ -6,6 +6,7 @@ const DailyLogForm = ({ onBack, initialData }) => {
   const [formData, setFormData] = useState({
     date: '',
     job: '',
+    siteAddress: '',
     personInCharge: '',
     personCompletingLog: '',
     weather: '',
@@ -23,6 +24,7 @@ const DailyLogForm = ({ onBack, initialData }) => {
       setFormData({
         date: initialData.date ? initialData.date.split('T')[0] : '',
         job: initialData.job || '',
+        siteAddress: initialData.siteAddress || '',
         personInCharge: initialData.personInCharge || '',
         personCompletingLog: initialData.personCompletingLog || '',
         weather: initialData.weather || '',
@@ -125,6 +127,18 @@ const DailyLogForm = ({ onBack, initialData }) => {
               required
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-2">Site Address (Optional)</label>
+          <input
+            type="text"
+            name="siteAddress"
+            value={formData.siteAddress}
+            onChange={handleInputChange}
+            className="w-full border-2 border-gray-300 rounded p-2"
+            placeholder="Enter site address"
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

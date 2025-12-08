@@ -7,8 +7,9 @@ import {
   Clock,
   CheckCircle,
   MapPin,
+  X,
 } from 'lucide-react';
-import { getFormHistory, getFormById, exportFormToPDF, getJobSites } from '../utils/Api';
+import { getFormHistory, getFormById, exportFormToPDF, getJobSites, updateJobSiteStatus } from '../utils/Api';
 import CompletedFormModal from './forms/CompletedFormModal';
 import JobSitesMapModal from './JobSitesMapModal';
 
@@ -75,6 +76,21 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
     }
   };
 
+  const handleArchiveJobSite = async (jobName, address) => {
+    if (!confirm(`Archive "${jobName}"? This will remove it from the current job sites list and map.`)) {
+      return;
+    }
+
+    try {
+      await updateJobSiteStatus(jobName, address, false);
+      // Refresh job sites list
+      await fetchJobSiteData();
+    } catch (error) {
+      console.error('Error archiving job site:', error);
+      alert('Failed to archive job site. Please try again.');
+    }
+  };
+
   const getFormTypeLabel = (formType) => {
     const labels = {
       'daily-log': 'Daily Log',
@@ -137,6 +153,25 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Calculate safety meetings this week
+  const getSafetyMeetingsThisWeek = () => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7); // End of current week
+
+    const safetyMeetings = completedForms.filter(form => {
+      if (form.formType !== 'safety-meeting') return false;
+      const formDate = new Date(form.date || form.createdAt);
+      return formDate >= startOfWeek && formDate < endOfWeek;
+    });
+
+    return safetyMeetings.length;
+  };
+
   const stats = [
     {
       label: 'Pending Forms',
@@ -164,8 +199,8 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
     },
     {
       label: 'Safety Meetings',
-      value: 3,
-      subtext: 'Scheduled this week',
+      value: getSafetyMeetingsThisWeek(),
+      subtext: 'Completed this week',
       icon: Clipboard,
       accent: 'text-purple-600',
       chip: 'bg-purple-100',
@@ -386,15 +421,19 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
             <div className="divide-y divide-slate-100">
               {jobSites.map((site, index) => (
                 <div key={`${site.jobName}-${site.address}-${index}`} className="px-6 py-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
                       <p className="text-lg font-semibold text-slate-900">{site.jobName}</p>
                       <p className="text-sm text-slate-500">{site.address}</p>
                       <p className="text-xs text-slate-400">Updated: {formatDate(site.updatedAt)}</p>
                     </div>
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-green-700">
-                      {site.status === 'completed' ? 'Completed' : 'Active'}
-                    </span>
+                    <button
+                      onClick={() => handleArchiveJobSite(site.jobName, site.address)}
+                      className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                      title="Archive this job site"
+                    >
+                      <X size={18} />
+                    </button>
                   </div>
                 </div>
               ))}

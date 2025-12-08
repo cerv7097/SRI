@@ -252,3 +252,22 @@ export const exportFormToPDF = async (formType, formId) => {
     throw error;
   }
 };
+
+export const updateJobSiteStatus = async (jobName, address, isActive) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/forms/meta/job-sites/status`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ jobName, address, isActive }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update job site status');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating job site status:', error);
+    throw error;
+  }
+};

@@ -7,6 +7,7 @@ const SafetyMeetingForm = ({ onBack, initialData }) => {
   const [formData, setFormData] = useState({
     date: '',
     jobName: '',
+    siteAddress: '',
     topic: '',
     recommendations: '',
     attendees: [{ name: '', signature: null, showSignaturePad: true }]
@@ -18,6 +19,7 @@ const SafetyMeetingForm = ({ onBack, initialData }) => {
       const loadedData = {
         date: initialData.date ? initialData.date.split('T')[0] : '',
         jobName: initialData.jobName || '',
+        siteAddress: initialData.siteAddress || '',
         topic: initialData.topic || '',
         recommendations: initialData.recommendations || '',
         attendees: initialData.attendees && initialData.attendees.length > 0
@@ -170,6 +172,18 @@ const SafetyMeetingForm = ({ onBack, initialData }) => {
               required
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold mb-2">Site Address (Optional)</label>
+          <input
+            type="text"
+            name="siteAddress"
+            value={formData.siteAddress}
+            onChange={handleInputChange}
+            className="w-full border-2 border-gray-300 rounded p-2"
+            placeholder="Enter site address"
+          />
         </div>
 
         <div>
