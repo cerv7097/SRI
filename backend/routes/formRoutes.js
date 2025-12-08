@@ -7,6 +7,7 @@ import {
   deleteForm,
   exportFormToPDF,
   getJobSites,
+  updateJobSiteStatus,
 } from '../controllers/formController.js';
 import { optionalAuth } from '../middleware/auth.js';
 
@@ -17,6 +18,7 @@ router.use(optionalAuth);
 
 // Metadata routes
 router.get('/meta/job-sites', getJobSites);
+router.put('/meta/job-sites/status', updateJobSiteStatus);
 
 // Form routes
 router.post('/:formType', createForm);

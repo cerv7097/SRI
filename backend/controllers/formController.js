@@ -3,6 +3,7 @@ import VehicleInspection from '../models/VehicleInspection.js';
 import DailyLog from '../models/DailyLog.js';
 import ScaffoldInspection from '../models/ScaffoldInspection.js';
 import User from '../models/User.js';
+import JobSiteStatus from '../models/JobSiteStatus.js';
 import { logFormError } from '../utils/logger.js';
 import {
   generateDailyLogPDF,
@@ -169,7 +170,7 @@ const jobSiteConfigs = [
     formType: 'daily-log',
     model: DailyLog,
     jobField: 'job',
-    addressField: 'jobAddress',
+    addressField: 'siteAddress',
   },
   {
     formType: 'vehicle-inspection',
@@ -181,7 +182,7 @@ const jobSiteConfigs = [
     formType: 'safety-meeting',
     model: SafetyMeeting,
     jobField: 'jobName',
-    addressField: 'jobAddress',
+    addressField: 'siteAddress',
   },
 ];
 
@@ -226,6 +227,7 @@ const formatFormDetails = (formType, form) => {
     case 'daily-log':
       return [
         `Job: ${form.job || 'N/A'}`,
+        `Site Address: ${form.siteAddress || 'N/A'}`,
         `Date: ${formatDateValue(form.date, { dateStyle: 'medium' })}`,
         `Person in Charge: ${form.personInCharge || 'N/A'}`,
         `Completed By: ${form.personCompletingLog || 'N/A'}`,
@@ -261,6 +263,7 @@ const formatFormDetails = (formType, form) => {
     case 'safety-meeting':
       return [
         `Job Name: ${form.jobName || 'N/A'}`,
+        `Site Address: ${form.siteAddress || 'N/A'}`,
         `Date: ${formatDateValue(form.date, { dateStyle: 'medium' })}`,
         `Topic: ${form.topic || 'N/A'}`,
         `Recommendations: ${form.recommendations || 'N/A'}`,
@@ -539,6 +542,12 @@ export const getJobSites = async (req, res) => {
     const limit = parseInt(req.query.limit || '15', 10);
     const collectedSites = [];
 
+    // Get all archived job sites
+    const archivedSites = await JobSiteStatus.find({ isActive: false });
+    const archivedKeys = new Set(
+      archivedSites.map(site => `${site.jobName}-${site.address}`.toLowerCase())
+    );
+
     for (const config of jobSiteConfigs) {
       const { model, formType, jobField, addressField } = config;
       const docs = await model.find({ [addressField]: { $exists: true, $ne: '' } })
@@ -567,7 +576,8 @@ export const getJobSites = async (req, res) => {
 
     collectedSites.forEach(site => {
       const key = `${site.jobName}-${site.address}`.toLowerCase();
-      if (!seen.has(key)) {
+      // Skip if already seen or if archived
+      if (!seen.has(key) && !archivedKeys.has(key)) {
         seen.add(key);
         uniqueSites.push(site);
       }
@@ -582,6 +592,42 @@ export const getJobSites = async (req, res) => {
     console.error('Error fetching job sites:', error);
     res.status(500).json({
       message: 'Error fetching job sites',
+      error: error.message,
+    });
+  }
+};
+
+// Archive/unarchive a job site
+export const updateJobSiteStatus = async (req, res) => {
+  try {
+    const { jobName, address, isActive } = req.body;
+
+    if (!jobName || !address) {
+      return res.status(400).json({ message: 'Job name and address are required' });
+    }
+
+    const updateData = {
+      isActive,
+      ...(isActive === false && {
+        archivedBy: req.userId,
+        archivedAt: new Date(),
+      }),
+    };
+
+    const jobSiteStatus = await JobSiteStatus.findOneAndUpdate(
+      { jobName, address },
+      updateData,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(200).json({
+      message: `Job site ${isActive ? 'restored' : 'archived'} successfully`,
+      data: jobSiteStatus,
+    });
+  } catch (error) {
+    console.error('Error updating job site status:', error);
+    res.status(500).json({
+      message: 'Error updating job site status',
       error: error.message,
     });
   }

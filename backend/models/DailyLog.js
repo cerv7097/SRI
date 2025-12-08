@@ -13,6 +13,10 @@ const dailyLogSchema = new mongoose.Schema({
     type: String,
     required: requiredIfCompleted,
   },
+  siteAddress: {
+    type: String,
+    default: '',
+  },
   personInCharge: {
     type: String,
     required: requiredIfCompleted,

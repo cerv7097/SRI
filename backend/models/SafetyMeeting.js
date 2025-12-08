@@ -23,6 +23,10 @@ const safetyMeetingSchema = new mongoose.Schema({
     type: String,
     required: requiredIfCompleted,
   },
+  siteAddress: {
+    type: String,
+    default: '',
+  },
   topic: {
     type: String,
     required: requiredIfCompleted,

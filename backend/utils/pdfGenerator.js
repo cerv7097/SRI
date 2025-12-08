@@ -81,6 +81,7 @@ export const generateDailyLogPDF = (form) => {
   doc.fillColor('#000000');
   y = addField(doc, 'Date: ', formatDate(form.date), y);
   y = addField(doc, 'Job: ', form.job, y);
+  y = addField(doc, 'Site Address: ', form.siteAddress, y);
   y = addField(doc, 'Person in Charge: ', form.personInCharge, y);
   y = addField(doc, 'Completed By: ', form.personCompletingLog, y);
   y = addField(doc, 'Weather: ', form.weather, y);
@@ -299,6 +300,7 @@ export const generateSafetyMeetingPDF = (form) => {
   y = addSectionHeader(doc, 'Meeting Details', y);
   doc.fillColor('#000000');
   y = addField(doc, 'Job Name: ', form.jobName, y);
+  y = addField(doc, 'Site Address: ', form.siteAddress, y);
   y = addField(doc, 'Date: ', formatDate(form.date), y);
   y = addTextArea(doc, 'Topic:', form.topic, y);
 
