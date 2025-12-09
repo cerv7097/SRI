@@ -9,9 +9,10 @@ import {
   MapPin,
   X,
 } from 'lucide-react';
-import { getFormHistory, getFormById, exportFormToPDF, getJobSites, updateJobSiteStatus } from '../utils/Api';
+import { getFormHistory, getFormById, exportFormToPDF, getJobSites, updateJobSiteStatus, deleteForm } from '../utils/Api';
 import CompletedFormModal from './forms/CompletedFormModal';
 import JobSitesMapModal from './JobSitesMapModal';
+import AllPendingFormsModal from './AllPendingFormsModal';
 
 const Dashboard = ({ onNavigate, onEditDraft }) => {
   const [draftForms, setDraftForms] = useState([]);
@@ -25,6 +26,7 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
   const [viewingFormError, setViewingFormError] = useState(null);
   const [viewingFormLoading, setViewingFormLoading] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isPendingFormsModalOpen, setIsPendingFormsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchForms();
@@ -88,6 +90,22 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
     } catch (error) {
       console.error('Error archiving job site:', error);
       alert('Failed to archive job site. Please try again.');
+    }
+  };
+
+  const handleDeleteDraft = async (formType, formId) => {
+    if (!confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await deleteForm(formType, formId);
+      // Refresh forms list
+      await fetchForms();
+      alert('Draft deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      alert('Failed to delete draft. Please try again.');
     }
   };
 
@@ -295,7 +313,12 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
                 <p className="text-sm text-slate-500">Pick up where you left off.</p>
               </div>
             </div>
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-500">View All</button>
+            <button
+              onClick={() => setIsPendingFormsModalOpen(true)}
+              className="text-sm font-semibold text-blue-600 hover:text-blue-500"
+            >
+              View All
+            </button>
           </div>
           {loading ? (
             <div className="px-6 py-12 text-center text-slate-500">Loading drafts...</div>
@@ -464,6 +487,15 @@ const Dashboard = ({ onNavigate, onEditDraft }) => {
         isOpen={isMapOpen}
         onClose={() => setIsMapOpen(false)}
         jobSites={jobSites}
+      />
+
+      <AllPendingFormsModal
+        isOpen={isPendingFormsModalOpen}
+        onClose={() => setIsPendingFormsModalOpen(false)}
+        draftForms={draftForms}
+        onEditDraft={onEditDraft}
+        onDeleteDraft={handleDeleteDraft}
+        loading={loading}
       />
     </div>
   );

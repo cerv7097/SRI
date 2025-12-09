@@ -253,6 +253,24 @@ export const exportFormToPDF = async (formType, formId) => {
   }
 };
 
+export const deleteForm = async (formType, formId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/forms/${formType}/${formId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete form');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting form:', error);
+    throw error;
+  }
+};
+
 export const updateJobSiteStatus = async (jobName, address, isActive) => {
   try {
     const response = await fetch(`${API_BASE_URL}/forms/meta/job-sites/status`, {

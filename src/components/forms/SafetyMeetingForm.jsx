@@ -130,6 +130,7 @@ const SafetyMeetingForm = ({ onBack, initialData }) => {
         console.log('Draft saved:', result);
         alert('Draft saved successfully!');
       }
+      onBack();
     } catch (error) {
       console.error('Error saving draft:', error);
       alert('Failed to save draft. Please try again.');
