@@ -7,7 +7,8 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: ''
+    fullName: '',
+    inviteCode: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,7 +55,8 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
-        fullName: formData.fullName
+        fullName: formData.fullName,
+        inviteCode: formData.inviteCode
       });
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -85,6 +87,23 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="inviteCode" className="block text-sm font-semibold text-slate-700 mb-2">
+                Invite Code
+              </label>
+              <input
+                type="text"
+                id="inviteCode"
+                name="inviteCode"
+                value={formData.inviteCode}
+                onChange={handleChange}
+                required
+                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                placeholder="Enter your invite code"
+                disabled={loading}
+              />
+            </div>
+
             <div>
               <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">
                 Full Name

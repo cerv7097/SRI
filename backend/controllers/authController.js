@@ -13,7 +13,15 @@ const generateToken = (userId) => {
 // Register new user
 export const register = async (req, res) => {
   try {
-    const { username, email, password, fullName } = req.body;
+    const { username, email, password, fullName, inviteCode } = req.body;
+
+    // Validate invite code
+    const validInviteCode = process.env.INVITE_CODE || 'STUCCO2024';
+    if (!inviteCode || inviteCode.toUpperCase() !== validInviteCode.toUpperCase()) {
+      return res.status(403).json({
+        message: 'Invalid invite code. Please contact your administrator.'
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({
