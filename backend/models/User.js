@@ -39,6 +39,18 @@ const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
+  },
+  twoFactorSecret: {
+    type: String,
+    select: false  // Never include in queries by default
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  backupCodes: {
+    type: [String],
+    select: false  // Never include in queries by default
   }
 }, {
   timestamps: true
@@ -69,10 +81,12 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
-// Remove password from JSON output
+// Remove sensitive fields from JSON output
 userSchema.methods.toJSON = function() {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.twoFactorSecret;
+  delete obj.backupCodes;
   return obj;
 };
 

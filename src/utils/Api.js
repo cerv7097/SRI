@@ -289,3 +289,94 @@ export const updateJobSiteStatus = async (jobName, address, isActive) => {
     throw error;
   }
 };
+
+// Two-Factor Authentication APIs
+
+export const setupTwoFactor = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/2fa/setup`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to setup 2FA');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error setting up 2FA:', error);
+    throw error;
+  }
+};
+
+export const verifyTwoFactorSetup = async (code) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/2fa/verify-setup`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to verify 2FA');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error verifying 2FA setup:', error);
+    throw error;
+  }
+};
+
+export const verifyTwoFactorLogin = async (tempToken, code) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/2fa/verify-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ tempToken, code }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || '2FA verification failed');
+    }
+
+    const data = await response.json();
+
+    // Store token in localStorage
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error verifying 2FA login:', error);
+    throw error;
+  }
+};
+
+export const disableTwoFactor = async (password) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/2fa/disable`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to disable 2FA');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error disabling 2FA:', error);
+    throw error;
+  }
+};

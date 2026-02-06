@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import Dashboard from './components/Dashboard';
@@ -6,6 +6,7 @@ import Reports from './components/Reports';
 import History from './components/History';
 import Login from './components/Login';
 import Register from './components/Register';
+import Settings from './components/Settings';
 import SafetyMeetingForm from './components/forms/SafetyMeetingForm';
 import VehicleInspectionForm from './components/forms/VehicleInspectionForm';
 import DailyLogForm from './components/forms/DailyLogForm';
@@ -39,7 +40,16 @@ function App() {
 
   const handleLogin = async (username, password) => {
     const data = await login(username, password);
+    // If 2FA is required, return the response so Login component can handle it
+    if (data.requiresTwoFactor) {
+      return data;
+    }
     setUser(data.user);
+    return data;
+  };
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
   };
 
   const handleRegister = async (userData) => {
@@ -69,8 +79,14 @@ function App() {
     setCurrentScreen('dashboard');
   };
 
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   const renderScreen = () => {
     switch (currentScreen) {
+      case 'settings':
+        return <Settings user={user} onBack={handleBackToDashboard} onUserUpdate={handleUserUpdate} />;
       case 'reports':
         return <Reports />;
       case 'history':
@@ -103,7 +119,11 @@ function App() {
   // Show login/register if not authenticated
   if (!user) {
     return authScreen === 'login' ? (
-      <Login onLogin={handleLogin} onSwitchToRegister={() => setAuthScreen('register')} />
+      <Login
+        onLogin={handleLogin}
+        onSwitchToRegister={() => setAuthScreen('register')}
+        onLoginSuccess={handleLoginSuccess}
+      />
     ) : (
       <Register onRegister={handleRegister} onSwitchToLogin={() => setAuthScreen('login')} />
     );
@@ -112,7 +132,7 @@ function App() {
   // Show main app if authenticated
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200">
-      <Header user={user} onLogout={handleLogout} />
+      <Header user={user} onLogout={handleLogout} onSettings={() => setCurrentScreen('settings')} />
       <Navigation currentScreen={currentScreen} setCurrentScreen={setCurrentScreen} />
       <main className="w-full py-10">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,6 @@
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Settings } from 'lucide-react';
 
-const Header = ({ user, onLogout }) => {
+const Header = ({ user, onLogout, onSettings }) => {
   return (
     <header className="w-full border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 py-6">
@@ -15,6 +15,13 @@ const Header = ({ user, onLogout }) => {
                 <p className="text-xs text-slate-500">{user.username}</p>
               </div>
             </div>
+            <button
+              onClick={onSettings}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <Settings size={16} />
+              Settings
+            </button>
             <button
               onClick={onLogout}
               className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
