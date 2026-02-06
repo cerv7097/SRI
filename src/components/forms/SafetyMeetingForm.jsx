@@ -286,6 +286,11 @@ const SafetyMeetingForm = ({ onBack, initialData }) => {
               complying with the rules and regulation set forth by Stucco Rite, Inc. on all jobs safety rules, no use of tobacco
               products where prohibited, and the use of <strong>Alcohol</strong> or <strong>Illegal Drugs</strong> on job site will be cause for immediate dismissal.
               Any injury <strong>MUST</strong> be reported to your supervisor immediately.
+              <br /><br />
+              <strong>Reconocimiento:</strong> Al firmar su nombre en esta reunión de seguridad, usted reconoce que está cumpliendo con 
+              las normas y regulaciones establecidas por Stucco Rite, Inc. sobre todas las reglas de seguridad en el trabajo, la prohibición 
+              del uso de productos de tabaco donde no estén permitidos, y que el uso de <strong>Alcohol</strong> o <strong>Drogas Ilegales</strong> en el lugar de trabajo será 
+              motivo de despido inmediato. Cualquier lesión <strong>DEBE</strong> ser reportada a su supervisor de inmediato.
             </p>
           </div>
         </div>
