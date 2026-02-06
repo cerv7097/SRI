@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { authenticator } from 'otplib';
+import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
 import User from '../models/User.js';
 
@@ -204,27 +204,33 @@ export const setupTwoFactor = async (req, res) => {
       });
     }
 
-    // Generate new secret
-    const secret = authenticator.generateSecret();
+    // Generate new secret using OTPAuth
+    const secret = new OTPAuth.Secret({ size: 20 });
 
-    // Create otpauth URL for QR code
-    const otpauthUrl = authenticator.keyuri(
-      user.email,
-      'Stucco Rite Inc',
-      secret
-    );
+    // Create TOTP object
+    const totp = new OTPAuth.TOTP({
+      issuer: 'Stucco Rite Inc',
+      label: user.email,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+      secret: secret
+    });
+
+    // Get the otpauth URL for QR code
+    const otpauthUrl = totp.toString();
 
     // Generate QR code as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
 
     // Store secret temporarily (not enabled yet)
-    user.twoFactorSecret = secret;
+    user.twoFactorSecret = secret.base32;
     await user.save();
 
     res.status(200).json({
       message: 'Scan this QR code with your authenticator app',
       qrCode: qrCodeDataUrl,
-      secret: secret // Allow manual entry if QR scan fails
+      secret: secret.base32 // Allow manual entry if QR scan fails
     });
   } catch (error) {
     console.error('2FA setup error:', error);
@@ -253,13 +259,20 @@ export const verifyTwoFactorSetup = async (req, res) => {
       });
     }
 
-    // Verify the code
-    const isValid = authenticator.verify({
-      token: code,
-      secret: user.twoFactorSecret
+    // Create TOTP object with stored secret
+    const totp = new OTPAuth.TOTP({
+      issuer: 'Stucco Rite Inc',
+      label: user.email,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+      secret: OTPAuth.Secret.fromBase32(user.twoFactorSecret)
     });
 
-    if (!isValid) {
+    // Verify the code (allow 1 period window for clock drift)
+    const delta = totp.validate({ token: code, window: 1 });
+
+    if (delta === null) {
       return res.status(400).json({
         message: 'Invalid verification code'
       });
@@ -331,13 +344,20 @@ export const verifyTwoFactorLogin = async (req, res) => {
       user.backupCodes.splice(backupCodeIndex, 1);
       await user.save();
     } else {
-      // Verify TOTP code
-      const isValid = authenticator.verify({
-        token: code,
-        secret: user.twoFactorSecret
+      // Create TOTP object with stored secret
+      const totp = new OTPAuth.TOTP({
+        issuer: 'Stucco Rite Inc',
+        label: user.email,
+        algorithm: 'SHA1',
+        digits: 6,
+        period: 30,
+        secret: OTPAuth.Secret.fromBase32(user.twoFactorSecret)
       });
 
-      if (!isValid) {
+      // Verify the code (allow 1 period window for clock drift)
+      const delta = totp.validate({ token: code, window: 1 });
+
+      if (delta === null) {
         return res.status(400).json({
           message: 'Invalid verification code'
         });
